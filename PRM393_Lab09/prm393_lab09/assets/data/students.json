@@ -1,0 +1,37 @@
+[
+  {
+    "id": "1",
+    "name": "Lê Hoài Nam",
+    "email": "NamLHHE186671@fpt.edu.vn",
+    "major": "Software Engineering",
+    "gpa": 3.8
+  },
+  {
+    "id": "2",
+    "name": "Tạ Tương Mười",
+    "email": "MuoiTM@fpt.edu.vn",
+    "major": "Information Assurance",
+    "gpa": 3.5
+  },
+  {
+    "id": "3",
+    "name": "Nguyễn Hải Đăng",
+    "email": "DangNH@fpt.edu.vn",
+    "major": "Artificial Intelligence",
+    "gpa": 3.9
+  },
+  {
+    "id": "4",
+    "name": "Nguyễn Mạnh Quân",
+    "email": "QuanNM@fpt.edu.vn",
+    "major": "Software Engineering",
+    "gpa": 3.2
+  },
+  {
+    "id": "5",
+    "name": "Huấn Hoa Hồng",
+    "email": "HuabHH@fpt.edu.vn",
+    "major": "Graphic Design",
+    "gpa": 3.6
+  }
+]
