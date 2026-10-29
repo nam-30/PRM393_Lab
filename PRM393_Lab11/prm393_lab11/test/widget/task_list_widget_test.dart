@@ -11,6 +11,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(TasklyApp(repository: repository));
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.text('No tasks yet. Add one!'), findsOneWidget);
@@ -20,11 +21,12 @@ void main() {
       // Arrange
       final repository = TaskRepository();
       await tester.pumpWidget(TasklyApp(repository: repository));
+      await tester.pumpAndSettle();
 
       // Act
       await tester.enterText(find.byType(TextField), 'Buy Milk');
       await tester.tap(find.text('Add'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.text('Buy Milk'), findsOneWidget);
@@ -35,16 +37,17 @@ void main() {
       // Arrange
       final repository = TaskRepository();
       await tester.pumpWidget(TasklyApp(repository: repository));
+      await tester.pumpAndSettle();
 
       // Act: Add Task 1
       await tester.enterText(find.byType(TextField), 'First Task');
       await tester.tap(find.text('Add'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Act: Add Task 2
       await tester.enterText(find.byType(TextField), 'Second Task');
       await tester.tap(find.text('Add'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       // Assert
       expect(find.text('First Task'), findsOneWidget);

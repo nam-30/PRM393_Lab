@@ -9,11 +9,12 @@ void main() {
       // Arrange
       final repository = TaskRepository();
       await tester.pumpWidget(TasklyApp(repository: repository));
+      await tester.pumpAndSettle();
 
       // Step 1: Add "Original title"
       await tester.enterText(find.byType(TextField), 'Original title');
       await tester.tap(find.text('Add'));
-      await tester.pump();
+      await tester.pumpAndSettle();
 
       expect(find.text('Original title'), findsOneWidget);
 
