@@ -7,55 +7,84 @@ import '../models/student.dart';
 
 class LocalStorageService {
   final String fileName;
+  
+  // In-memory fallback cache for web/test environments
+  static final Map<String, List<Student>> _inMemoryCache = {};
 
   LocalStorageService({this.fileName = 'local_students.json'});
 
-  // Get the local file path from application documents directory
-  Future<File> get _localFile async {
-    final directory = await getApplicationDocumentsDirectory();
-    return File('${directory.path}/$fileName');
+  // Get local file safely. Returns null if path_provider fails (e.g., in Web or Test)
+  Future<File?> get _localFile async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      return File('${directory.path}/$fileName');
+    } catch (e) {
+      debugPrint('path_provider not supported in current environment: $e');
+      return null;
+    }
   }
 
-  // Read students from local JSON file
-  // If local file does not exist, initialize it with data from assets
+  // Read students from local JSON file or asset fallback
   Future<List<Student>> loadStudents() async {
     try {
       final file = await _localFile;
 
-      if (!await file.exists()) {
-        // Load default students from asset file
-        final String assetContent =
-            await rootBundle.loadString('assets/data/students.json');
-        final List<dynamic> jsonList = jsonDecode(assetContent);
-        final List<Student> defaultStudents =
-            jsonList.map((item) => Student.fromJson(item)).toList();
+      if (file == null) {
+        // Fallback for Web/Test environment using in-memory cache or assets
+        if (_inMemoryCache.containsKey(fileName)) {
+          return List.from(_inMemoryCache[fileName]!);
+        }
+        return await _loadFromAssets();
+      }
 
-        // Save default students to local storage file
+      if (!await file.exists()) {
+        // First-time initialization from asset JSON
+        final defaultStudents = await _loadFromAssets();
         await saveStudents(defaultStudents);
         return defaultStudents;
       }
 
-      // Read content from local file
       final String fileContent = await file.readAsString();
       if (fileContent.trim().isEmpty) {
         return [];
       }
 
       final List<dynamic> jsonList = jsonDecode(fileContent);
-      return jsonList.map((item) => Student.fromJson(item)).toList();
+      final list = jsonList.map((item) => Student.fromJson(item)).toList();
+      _inMemoryCache[fileName] = List.from(list);
+      return list;
     } catch (e) {
       debugPrint('Error loading students from local storage: $e');
+      return await _loadFromAssets();
+    }
+  }
+
+  // Helper to load default asset JSON
+  Future<List<Student>> _loadFromAssets() async {
+    try {
+      final String assetContent =
+          await rootBundle.loadString('assets/data/students.json');
+      final List<dynamic> jsonList = jsonDecode(assetContent);
+      final list = jsonList.map((item) => Student.fromJson(item)).toList();
+      _inMemoryCache[fileName] = List.from(list);
+      return list;
+    } catch (e) {
+      debugPrint('Error loading asset JSON: $e');
       return [];
     }
   }
 
   // Save list of students to local JSON file
   Future<bool> saveStudents(List<Student> students) async {
+    _inMemoryCache[fileName] = List.from(students);
     try {
       final file = await _localFile;
+      if (file == null) return true; // Saved to in-memory fallback
+
       final List<Map<String, dynamic>> jsonList =
           students.map((student) => student.toJson()).toList();
-      final String jsonString = const JsonEncoder.withIndent('  ').convert(jsonList);
+      final String jsonString =
+          const JsonEncoder.withIndent('  ').convert(jsonList);
 
       await file.writeAsString(jsonString);
       return true;
@@ -65,13 +94,14 @@ class LocalStorageService {
     }
   }
 
-  // Helper method to clear local JSON file (Reset to assets default)
+  // Reset local file back to asset defaults
   Future<List<Student>> resetToDefault() async {
     try {
       final file = await _localFile;
-      if (await file.exists()) {
+      if (file != null && await file.exists()) {
         await file.delete();
       }
+      _inMemoryCache.remove(fileName);
       return await loadStudents();
     } catch (e) {
       debugPrint('Error resetting local file: $e');
